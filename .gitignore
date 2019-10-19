@@ -1,0 +1,6 @@
+/.bloop
+/.ensime_cache
+/project
+/target
+pc.stdout.log
+ensime-langserver.log
