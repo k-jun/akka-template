@@ -1,6 +1,9 @@
 /.bloop
 /.ensime_cache
+/.metals
+
 /project
 /target
+
 pc.stdout.log
 ensime-langserver.log

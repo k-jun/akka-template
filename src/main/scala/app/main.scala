@@ -14,6 +14,10 @@ import scala.io.StdIn
 import scala.concurrent.Future
 
 import app.controllers.indexControllers._
+import app.controllers.todoControllers._
+import app.models.indexModels._
+import app.models.todoModels._
+import app.db.mysql.{initialize}
 
 object WebServer {
 
@@ -24,6 +28,7 @@ object WebServer {
   implicit val executionContext = system.dispatcher
 
   def main(args: Array[String]) {
+    initialize()
 
     val route: Route =
       concat(
@@ -32,26 +37,49 @@ object WebServer {
             pathPrefix("path" / LongNumber / DoubleNumber / "[0-9a-zA-Z-#() ]+".r) {
               (int, dou, str) =>
                 get {
-                  val response: Params = paramsPath(int, dou, str)
-                  complete(response)
+                  complete(paramsPath(int, dou, str))
                 }
             },
             path("query") {
               get {
                 parameters("int", "float", "str") {(int, dou, str) =>
-                  val response: Params = paramsQuery(int, dou, str)
-                  complete(response)
+                  complete(paramsQuery(int, dou, str))
                 }
               }
             },
             path("body") {
               post {
                 entity(as[Params]) { body =>
-                  val response: Params = paramsBody(body)
-                  complete(response)
+                  complete(paramsBody(body))
                 }
               }
             }
+          )
+        },
+        pathPrefix("todo") {
+          concat(
+            pathPrefix(LongNumber) {
+              (id) =>
+                get {
+                  complete(readTodo(id.toInt))
+                }
+                put {
+                  entity(as[NewTodo]) { todo =>
+                    complete(updateTodo(id.toInt, todo))
+                  }
+                }
+                delete {
+                  complete(deleteTodo(id.toInt))
+                }
+            },
+            pathEndOrSingleSlash {
+              post {
+                entity(as[NewTodo]) { todo =>
+                  complete(createTodo(todo))
+                  // complete(paramsBody(body))
+                }
+              }
+            },
           )
         }
       )
